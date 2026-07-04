@@ -1,14 +1,13 @@
 import { defineEval } from "eve/evals";
 
 export default defineEval({
-  description: "Answers a simple raw count with run_sql.",
+  description: "Uses run_sql for a filtered aggregate that list_tables cannot answer.",
   async test(t) {
     await t.send(
-      "How many rows are in the customers table in total? Give me the raw count of every row, " +
-        "including any test accounts.",
+      "How many orders have the status 'cancelled'? Run a SQL query against the orders table to " +
+        "count them, and give me the number.",
     );
     t.succeeded();
     t.calledTool("run_sql");
-    t.messageIncludes("14"); // the seeded dataset has exactly 14 customer rows
   },
 });

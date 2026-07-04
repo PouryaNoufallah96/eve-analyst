@@ -1,9 +1,7 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { isReadOnlySelect, looksExpensive } from "../lib/sql-guard.js";
-import { getDb } from "../lib/db.js";
-
-const MAX_ROWS = 200;
+import { runSelect } from "../lib/run-select.js";
 
 export default defineTool({
   description:
@@ -21,16 +19,6 @@ export default defineTool({
     return looksExpensive(sql) ? "user-approval" : "not-applicable";
   },
   async execute({ sql }) {
-    const guard = isReadOnlySelect(sql);
-    if (!guard.ok) {
-      return { error: guard.reason, rows: [], rowCount: 0 };
-    }
-    try {
-      const rows = getDb().prepare(sql).all() as Record<string, unknown>[];
-      const capped = rows.slice(0, MAX_ROWS).map((r) => ({ ...r }));
-      return { sql, rows: capped, rowCount: rows.length, truncated: rows.length > MAX_ROWS };
-    } catch (err) {
-      return { error: `SQL error: ${(err as Error).message}`, rows: [], rowCount: 0 };
-    }
+    return runSelect(sql);
   },
 });
