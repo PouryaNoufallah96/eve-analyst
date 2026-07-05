@@ -71,6 +71,7 @@ Try these to see each feature:
 node --test test/*.test.ts             # unit tests (SQL guard + dataset)
 pnpm exec eve eval --strict            # agent evals (deploy gate)
 node test/e2e.mjs                      # end-to-end multi-turn conversation (needs `pnpm dev` running)
+node test/prod-checks.mjs              # correctness + edge cases + sandbox network isolation (defaults to prod URL)
 pnpm typecheck                         # tsc
 ```
 
@@ -104,6 +105,9 @@ VERCEL_USE_EXPERIMENTAL_FRAMEWORKS=1 vercel deploy --prod
   on expensive scans; the autonomous `investigator` runs read-only SQL without prompts.
 - **No filesystem writes.** The dataset is in-memory and seeded per process, so it behaves the
   same on a laptop and on Vercel's read-only serverless filesystem.
+- **The sandbox has no network.** `agent/sandbox.ts` pins `networkPolicy: "deny-all"` (Eve's
+  default is allow-all), so model-written code runs isolated with no egress. Verified by
+  `test/prod-checks.mjs`.
 
 ## License
 
