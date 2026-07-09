@@ -1,17 +1,16 @@
-import { connectSlackCredentials } from "@vercel/connect/eve";
 import { slackChannel } from "eve/channels/slack";
 
-// Slack channel. Credentials flow through Vercel Connect, so there is no bot token
-// or signing secret in code. The same agent that answers over HTTP now answers Slack
-// @mentions and DMs in threads, with human-in-the-loop approvals rendered as buttons.
+// Slack channel using a direct Slack app (no Vercel Connect required).
+// Credentials fall back to environment variables:
+//   SLACK_BOT_TOKEN       - Bot User OAuth Token (xoxb-...), for outbound Web API calls
+//   SLACK_SIGNING_SECRET  - App signing secret, to HMAC-verify inbound webhooks
+// Set both in .env.local (local) and in the Vercel project env (production).
 //
-// To activate (one-time), provision a Connect Slack client and point its trigger at
-// eve's Slack route, then deploy (see README "Enable Slack"):
-//   export FF_CONNECT_ENABLED=1
-//   vercel connect create slack --triggers
-//   vercel connect attach <uid> --triggers --trigger-path /eve/v1/slack --yes
-//   VERCEL_USE_EXPERIMENTAL_FRAMEWORKS=1 vercel deploy --prod
+// In the Slack app: add bot scopes (app_mentions:read, chat:write, im:history,
+// im:write, users:read), enable Event Subscriptions with Request URL
+// https://<your-deployment>/eve/v1/slack, subscribe to bot events app_mention
+// (and message.im for DMs), then install the app to the workspace.
 export default slackChannel({
-  credentials: connectSlackCredentials("slack/eve-analyst"),
+  credentials: {},
   threadContext: { since: "last-agent-reply" },
 });
